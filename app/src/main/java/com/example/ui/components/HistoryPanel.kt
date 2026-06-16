@@ -87,7 +87,7 @@ fun HistoryPanel(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "扫描历史记录 (${historicalModels.size})",
+                text = "自定义壁挂画历史 (${historicalModels.size})",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MinimalText
@@ -203,7 +203,7 @@ fun HistoryItem(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "深度: ${(model.depthScale * 10f).toInt() / 10f}",
+                    text = "画框壁饰",
                     color = MinimalLightGray,
                     fontSize = 9.sp
                 )

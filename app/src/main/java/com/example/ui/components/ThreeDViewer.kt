@@ -1,14 +1,12 @@
 package com.example.ui.components
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -18,166 +16,194 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.example.math.Matrix3D
-import com.example.math.ProjectedVertex
-import com.example.math.Triangle3D
 import com.example.math.Vertex3D
-import com.example.ui.theme.MinimalDark
+import com.example.math.Triangle3D
 import com.example.ui.viewmodel.RenderMode
+import com.example.ui.theme.MinimalDark
+import com.example.ui.viewmodel.HotspotConfig
+import kotlin.math.sqrt
 
 @Composable
 fun ThreeDViewer(
-    vertices: List<Vertex3D>,
-    triangles: List<Triangle3D>,
-    renderMode: RenderMode,
-    depthStrength: Float,
+    cameraX: Float,
+    cameraY: Float,
+    cameraZ: Float,
     cameraYaw: Float,
     cameraPitch: Float,
     zoomFactor: Float,
-    activeMaterialIndex: Int, // 0 = Clay, 1 = Bronze, 2 = Cyber Neon
-    isRotating: Boolean,
+    currentRoomIndex: Int,
+    wallColorIndex: Int,
+    floorPatternIndex: Int,
+    sceneBrightness: Float,
+    isTvOn: Boolean,
+    isLampOn: Boolean,
+    artworkBitmap: Bitmap?,
+    hotspots: List<HotspotConfig>,
     onAnglesChanged: (Float, Float) -> Unit,
+    onHotspotSelected: (HotspotConfig) -> Unit,
+    meshVertices: List<Vertex3D> = emptyList(),
+    meshTriangles: List<Triangle3D> = emptyList(),
+    renderMode: RenderMode = RenderMode.TEXTURE,
+    depthScale: Float = 0.4f,
     modifier: Modifier = Modifier
 ) {
-    // If we have no vertices, display a sleek blank terminal grid
-    if (vertices.isEmpty()) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(32.dp))
-                .background(MinimalDark)
-        )
-        return
-    }
-
-    // Material choices for Light Shaded mode
-    val materialBaseColor = when (activeMaterialIndex) {
-        0 -> Color(0xFFEADDFF) // M3 Lavender Clay
-        1 -> Color(0xFFCD7F32) // Bright Bronze
-        else -> Color(0xFF6750A4) // PolyCraft Signature Purple
-    }
-
     Canvas(
         modifier = modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(32.dp))
             .background(MinimalDark)
+            // Look around with drag touch gestures
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
-                    // Map drag amounts to angle deltas (X -> Yaw, Y -> Pitch)
+                    // Rotate Camera Looking Angles (X movement -> Yaw, Y movement -> Pitch)
                     onAnglesChanged(
-                        dragAmount.x * 0.007f, // Yaw Rotation Speed
-                        -dragAmount.y * 0.007f // Pitch Rotation Speed
+                        dragAmount.x * 0.0055f, 
+                        -dragAmount.y * 0.0055f
                     )
                 }
             }
     ) {
-        val width = size.width
-        val height = size.height
+        val w = size.width
+        val h = size.height
 
-        // 1. Project all 3D vertices into 2D space
-        val projected = Array(vertices.size) { i ->
+        val wFloat = w.toFloat()
+        val hFloat = h.toFloat()
+
+        // Project 3D photo mesh vertices using Matrix3D
+        val projected = Array(meshVertices.size) { i ->
+            val v = meshVertices[i]
+            val adjustedZ = v.z * depthScale
+            
             Matrix3D.project(
-                vertex = vertices[i],
-                yawRad = cameraYaw,
-                pitchRad = cameraPitch,
-                width = width,
-                height = height,
-                zoom = zoomFactor
+                Vertex3D(v.x, v.y, adjustedZ, v.r, v.g, v.b),
+                cameraYaw,
+                cameraPitch,
+                wFloat,
+                hFloat,
+                zoomFactor * 0.95f,
+                cameraDistance = 3.2f
             )
         }
 
-        // 2. Render based on active mode
-        when (renderMode) {
-            RenderMode.POINT_CLOUD -> {
-                // Draw glowing points directly
-                for (p in projected) {
-                    val color = Color(p.r, p.g, p.b)
+        if (renderMode == RenderMode.POINT_CLOUD) {
+            for (p in projected) {
+                if (p != null) {
                     drawCircle(
-                        color = color,
-                        radius = 2.5f * zoomFactor,
+                        color = Color(p.r, p.g, p.b),
+                        radius = 2.0f * zoomFactor,
                         center = Offset(p.screenX, p.screenY)
                     )
                 }
             }
-
-            RenderMode.WIREFRAME -> {
-                // Draw mesh lines with color mapping
-                val strokeWidth = 1f
-                val drawnEdges = HashSet<Long>()
-
-                for (f in triangles) {
-                    val p1 = projected[f.v1]
-                    val p2 = projected[f.v2]
-                    val p3 = projected[f.v3]
-
-                    fun drawEdge(i1: Int, i2: Int, startX: Float, startY: Float, endX: Float, endY: Float, r: Int, g: Int, b: Int) {
-                        val key = if (i1 < i2) (i1.toLong() shl 32) or i2.toLong() else (i2.toLong() shl 32) or i1.toLong()
-                        if (!drawnEdges.contains(key)) {
-                            drawnEdges.add(key)
-                            drawLine(
-                                color = Color(r, g, b, 180),
-                                start = Offset(startX, startY),
-                                end = Offset(endX, endY),
-                                strokeWidth = strokeWidth
-                            )
-                        }
-                    }
-
-                    drawEdge(f.v1, f.v2, p1.screenX, p1.screenY, p2.screenX, p2.screenY, p1.r, p1.g, p1.b)
-                    drawEdge(f.v2, f.v3, p2.screenX, p2.screenY, p3.screenX, p3.screenY, p2.r, p2.g, p2.b)
-                    drawEdge(f.v3, f.v1, p3.screenX, p3.screenY, p1.screenX, p1.screenY, p3.r, p3.g, p3.b)
+        } else if (renderMode == RenderMode.WIREFRAME) {
+            for (t in meshTriangles) {
+                val p1 = projected[t.v1] ?: continue
+                val p2 = projected[t.v2] ?: continue
+                val p3 = projected[t.v3] ?: continue
+                
+                val path = Path().apply {
+                    moveTo(p1.screenX, p1.screenY)
+                    lineTo(p2.screenX, p2.screenY)
+                    lineTo(p3.screenX, p3.screenY)
+                    close()
                 }
+                drawPath(
+                    path = path,
+                    color = Color(0xFFD0BCFF).copy(alpha = 0.45f),
+                    style = Stroke(0.6f * zoomFactor)
+                )
+            }
+        } else {
+            // TEXTURE or SHADED solid polygon faces
+            val sortedTriangleIndices = meshTriangles.indices.sortedWith { idx1, idx2 ->
+                val t1 = meshTriangles[idx1]
+                val t2 = meshTriangles[idx2]
+                
+                val z1 = (projected[t1.v1]?.depth ?: 0f) + (projected[t1.v2]?.depth ?: 0f) + (projected[t1.v3]?.depth ?: 0f)
+                val z2 = (projected[t2.v1]?.depth ?: 0f) + (projected[t2.v2]?.depth ?: 0f) + (projected[t2.v3]?.depth ?: 0f)
+                
+                if (z2 < z1) -1 else if (z2 > z1) 1 else 0 // descending painter's sort
             }
 
-            RenderMode.TEXTURE, RenderMode.SHADED -> {
-                // For solid polygon models, calculate face depth and sort triangles to prevent overlap artifacting (Painter's Algorithm)
-                val sortedTriangles = triangles.map { t ->
-                    val d = (projected[t.v1].depth + projected[t.v2].depth + projected[t.v3].depth) / 3f
-                    t.copy(depth = d)
-                }.sortedBy { it.depth }
+            val lx = 0.5f
+            val ly = 1.0f
+            val lz = 1.0f
+            val len = sqrt(lx * lx + ly * ly + lz * lz)
+            val nlx = lx / len
+            val nly = ly / len
+            val nlz = lz / len
 
-                for (f in sortedTriangles) {
-                    val p1 = projected[f.v1]
-                    val p2 = projected[f.v2]
-                    val p3 = projected[f.v3]
+            for (idx in sortedTriangleIndices) {
+                val t = meshTriangles[idx]
+                val p1 = projected[t.v1] ?: continue
+                val p2 = projected[t.v2] ?: continue
+                val p3 = projected[t.v3] ?: continue
 
-                    val srcV1 = vertices[f.v1]
-                    val srcV2 = vertices[f.v2]
-                    val srcV3 = vertices[f.v3]
+                // Backface culling
+                val area = (p2.screenX - p1.screenX) * (p3.screenY - p1.screenY) - (p2.screenY - p1.screenY) * (p3.screenX - p1.screenX)
+                if (area <= 0f) continue
+                
+                val v1 = meshVertices[t.v1]
+                val v2 = meshVertices[t.v2]
+                val v3 = meshVertices[t.v3]
+                
+                val ax = v2.x - v1.x
+                val ay = v2.y - v1.y
+                val az = (v2.z - v1.z) * depthScale
+                
+                val bx = v3.x - v1.x
+                val by = v3.y - v1.y
+                val bz = (v3.z - v1.z) * depthScale
+                
+                var nx = ay * bz - az * by
+                var ny = az * bx - ax * bz
+                var nz = ax * by - ay * bx
+                val clen = sqrt(nx*nx + ny*ny + nz*nz)
+                
+                val normalLightFactor: Float
+                if (clen > 0f) {
+                    nx /= clen
+                    ny /= clen
+                    nz /= clen
+                    val dot = nx * nlx + ny * nly + nz * nlz
+                    normalLightFactor = (dot * 0.45f + 0.55f).coerceIn(0.1f, 1.0f)
+                } else {
+                    normalLightFactor = 0.8f
+                }
 
-                    // Calculate Lambertian light factor
-                    val lightFactor = Matrix3D.calculateLighting(srcV1, srcV2, srcV3)
+                val facePath = Path().apply {
+                    moveTo(p1.screenX, p1.screenY)
+                    lineTo(p2.screenX, p2.screenY)
+                    lineTo(p3.screenX, p3.screenY)
+                    close()
+                }
 
-                    // Compute flat color for the polygon face
-                    val faceColor = if (renderMode == RenderMode.TEXTURE) {
-                        val avgR = ((p1.r + p2.r + p3.r) / 3f * lightFactor).toInt().coerceIn(0, 255)
-                        val avgG = ((p1.g + p2.g + p3.g) / 3f * lightFactor).toInt().coerceIn(0, 255)
-                        val avgB = ((p1.b + p2.b + p3.b) / 3f * lightFactor).toInt().coerceIn(0, 255)
-                        Color(avgR, avgG, avgB)
-                    } else {
-                        // Apply Light Shaded Material mode
-                        val shadingR = (materialBaseColor.red * 255f * lightFactor).toInt().coerceIn(0, 255)
-                        val shadingG = (materialBaseColor.green * 255f * lightFactor).toInt().coerceIn(0, 255)
-                        val shadingB = (materialBaseColor.blue * 255f * lightFactor).toInt().coerceIn(0, 255)
-                        Color(shadingR, shadingG, shadingB)
+                val color = if (renderMode == RenderMode.TEXTURE) {
+                    val avgR = (v1.r + v2.r + v3.r) / 3
+                    val avgG = (v1.g + v2.g + v3.g) / 3
+                    val avgB = (v1.b + v2.b + v3.b) / 3
+                    Color(
+                        red = (avgR / 255.0f * normalLightFactor).coerceIn(0f, 1f),
+                        green = (avgG / 255.0f * normalLightFactor).coerceIn(0f, 1f),
+                        blue = (avgB / 255.0f * normalLightFactor).coerceIn(0f, 1f)
+                    )
+                } else {
+                    val wallColor = when (wallColorIndex) {
+                        0 -> Color(0xFFFEF7FF) // Ivory custom Paint
+                        1 -> Color(0xFFE8F5E9) // Mint custom Paint
+                        2 -> Color(0xFFE0E0E0) // Smoke Clay custom Paint
+                        else -> Color(0xFFF3E5F5) // Lavender custom Paint
                     }
-
-                    // Draw filled Path representation of the triangle
-                    val path = Path().apply {
-                        moveTo(p1.screenX, p1.screenY)
-                        lineTo(p2.screenX, p2.screenY)
-                        lineTo(p3.screenX, p3.screenY)
-                        close()
-                    }
-
-                    drawPath(
-                        path = path,
-                        color = faceColor
+                    Color(
+                        red = (wallColor.red * normalLightFactor).coerceIn(0f, 1f),
+                        green = (wallColor.green * normalLightFactor).coerceIn(0f, 1f),
+                        blue = (wallColor.blue * normalLightFactor).coerceIn(0f, 1f)
                     )
                 }
+
+                drawPath(path = facePath, color = color)
             }
         }
     }
 }
-

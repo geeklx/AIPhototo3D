@@ -17,9 +17,9 @@ data class ProjectedVertex(
     val screenX: Float,
     val screenY: Float,
     val depth: Float, // Rotated Z value for painter's depth sorting
-    val r: Int,
-    val g: Int,
-    val b: Int
+    val r: Int = 127,
+    val g: Int = 127,
+    val b: Int = 127
 )
 
 data class Triangle3D(
@@ -30,6 +30,48 @@ data class Triangle3D(
 )
 
 object Matrix3D {
+    // Projects a 3D coordinate for first-person player camera looking inside a room
+    fun projectFirstPerson(
+        x: Float, y: Float, z: Float,
+        camX: Float, camY: Float, camZ: Float,
+        yawRad: Float, pitchRad: Float,
+        width: Float, height: Float,
+        zoom: Float = 1.0f
+    ): ProjectedVertex? {
+        // 1. Translate relative to camera (Camera space translation)
+        val dx = x - camX
+        val dy = y - camY
+        val dz = z - camZ
+
+        // 2. Rotate Yaw (left-right horizontal look around Y-axis)
+        val cy = cos(-yawRad)
+        val sy = sin(-yawRad)
+        val rx1 = dx * cy - dz * sy
+        val rz1 = dx * sy + dz * cy
+        val ry1 = dy
+
+        // 3. Rotate Pitch (up-down vertical tilt look around X-axis)
+        val cp = cos(-pitchRad)
+        val sp = sin(-pitchRad)
+        val rx2 = rx1
+        val ry2 = ry1 * cp - rz1 * sp
+        val rz2 = ry1 * sp + rz1 * cp
+
+        // 4. Clip if behind the lens (near plane clipping)
+        if (rz2 < 0.1f) return null
+
+        // 5. Perspective projection mapping
+        val fovScale = minOf(width, height) * 0.9f * zoom
+        val screenX = width / 2f + rx2 * (fovScale / rz2)
+        val screenY = height / 2f + ry2 * (fovScale / rz2)
+
+        return ProjectedVertex(
+            screenX = screenX,
+            screenY = screenY,
+            depth = rz2
+        )
+    }
+
     // Rotates and projects a 3D vertex onto 2D screen coordinates
     fun project(
         vertex: Vertex3D,
