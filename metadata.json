@@ -1,0 +1,6 @@
+{
+  "name": "Photo to 3D",
+  "description": "Convert captured and selected photos into interactive 3D models with real-time editing, local storage history, multiple render modes, and various custom file format exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

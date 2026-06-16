@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Photo to 3D</string>
+    <string name="app_title">照片转3D立体相机</string>
+    <string name="capture_photo">拍照建模</string>
+    <string name="select_gallery">相册导入</string>
+    <string name="history">历史模型</string>
+    <string name="render_mode">渲染模式</string>
+    <string name="rendering_texture">纹理贴图 (Textured)</string>
+    <string name="rendering_wireframe">网格线框 (Wireframe)</string>
+    <string name="rendering_pointcloud">点云模式 (Point Cloud)</string>
+    <string name="rendering_shading">光照着色 (Shaded)</string>
+    <string name="export_model">导出3D模型</string>
+    <string name="share_stereo">分享3D立体图</string>
+    <string name="save_album">保存至相册</string>
+    <string name="no_models_yet">还没有生成的3D模型，快去拍照生成吧！</string>
+    <string name="generating_3d">正在深度解算并生成3D模型...</string>
+    <string name="depth_sensitivity">深度敏感度 (Depth Strength)</string>
+    <string name="rotation_speed">自动旋转速度</string>
+    <string name="camera_angle">摄像机俯角</string>
+</resources>
