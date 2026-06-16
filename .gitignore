@@ -1,18 +1,35 @@
+# Built artifacts
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Gradle files
+.gradle/
+build/
+app/build/
+
+# IDE files (Android Studio / IntelliJ)
 *.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.idea/
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
 local.properties
+.DS_Store
+
+# Secrets and local properties
 .env
+.env.local
+.env.*
+!.env.example
 debug.keystore
+debug.keystore.base64
+
+# Log files
+*.log
+
+# Kotlin / JVM
+.kotlin/
+out/
