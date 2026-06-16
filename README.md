@@ -1,75 +1,112 @@
-# Photo to 3D (PolyCraft 3D)
+# Photo to 3D (PolyCraft 3D) 
 
-An elegant, modern Android application that converts standard 2D captured or imported photos into interactive 3D height-displacement meshes in real-time. Designed with a **Clean Minimalism** theme, this application offers an engaging, tactile visual experience paired with comprehensive scan history management.
+一个优雅、高品质的 3D 全息置换扫描与渲染 Android 客户端应用。应用可将拍摄或导入的标准 2D 照片实时转换为极具空间感、可交互的 3D 高度置换网格模型。
 
----
-
-## 🎨 Design Philosophy: Clean Minimalism
-
-The interface is engineered around modern Material Design 3 guidelines, leveraging fluid layouts, generous negative space, and a premium interactive aesthetic:
-
-- **Elegance & Flow**: A soft, comforting background (`#FEF7FF`) serves as the foundation.
-- **High-contrast Accents**: Rich indigo elements (`#6750A4`) draw focus to key interactions without cluttering the user interface.
-- **Visual Feedback**: The 3D render chamber is encased in an eye-safe dark space (`#211F26`) that supports real-time rotation, vertex calculation metrics overlays, and interactive material preview toggles.
+本项目完全采用现代 **Jetpack Compose 声明式 UI** 编写，并严密遵循 **Clean Minimalism（极简主义）** 设计美学，为用户呈现出极富品质、交互丝滑、触觉灵敏的数字艺术盛宴。
 
 ---
 
-## 🚀 Key Features
+## 🎨 极简主义设计规范 (Clean Minimalism System)
 
-### 1. Interactive 3D Hologram Viewer
-*   **Mesh Projection**: Instantly translates image pixel luminance and multi-dimensional normals into a 3D structural vertex mesh.
-*   **Intuitive Camera Orbit**: Drag-and-swipe system coordinates to rotate, tilt, or zoom into generated models.
-*   **Automatic Spin (Orbit Spin)**: Tap the orbit switch to make the view automatically rotate, with interactive speed/velocity multipliers.
-
-### 2. Multi-Mode Render Engine
-*   **Solid**: Complete light-shaded surface structure.
-*   **Wireframe**: Transparent grid vectors exposing the raw algorithmic geometry.
-*   **Texture**: Full pixel blending mapping the original photograph onto the displaced depth structure.
-
-### 3. Material Presets (Reflection)
-Customize reflections across high-fidelity preset indices:
-*   **Matte Sand Clay**: For soft, organic, clay-like feedback.
-*   **Bright Bronze**: High-contrast, shiny volumetric modeling.
-*   **Minimal Purple**: Signature metallic indigo finish.
-
-### 4. Advanced Displacement Slider
-*   Fine-control the **Height Displacement Coefficient** dynamically. See immediate recalculations of depth geometry.
-
-### 5. Local Database Navigation History
-*   Capture model profiles directly from the camera or pick photo files from your local gallery.
-*   Delete unwanted scans, display key stats (number of generated geometric triangles, scale factors, scan timestamp), or quickly restore previous scans for analysis.
+应用在界面风格上摒弃了冗余与花哨的装饰，将功能性与极简美学深度融为一体：
+*   **舒缓底色 (`#FEF7FF`)**：温润如玉、低对比度的粉白底色，有效降低长时间使用的视觉疲劳。
+*   **深紫点缀 (`#6750A4`)**：作为 Material Design 3 极简调色板的灵魂，所有的主要行为和状态转换均以优雅的深靛紫指引。
+*   **沉浸式 3D 腔体 (`#211F26`)**：专门设计的全息渲染窗口，采用微暗的高逼格灰色调，使 3D 网格模型的顶点与反射光泽更加醒目、突出。
+*   **圆润轮廓与大圆角 (`32dp`)**：视窗采用非同一般的优雅超大圆角与温和边框线条（`1dp`，`MinimalBorder` 含 `50%` 优雅半透），散发浓郁的现代高级感。
 
 ---
 
-## 🛠️ Technical Stack
+## 🚀 核心功能模块详细拆解
 
-- **Framework**: Jetpack Compose (100% Kotlin UI layout engine)
-- **Architecture**: Modular Model-View-ViewModel (MVVM)
-- **Asynchronous Execution**: Kotlin Coroutines & StateFlow state propagation
-- **Media Transcoder**: Coil Image Pipeline with dynamic edge cropping
-- **Design System**: Material Design 3 (M3) styling system
+### 1. 实时全息置换引擎 (3D displacement engine)
+*   **精细网格投影 (Mesh Projection)**：智能转换输入照片的每个像素点，通过亮度、对比度多维矩阵，将其解算为复杂的 `X / Y / Z` 3D 空间顶点。
+*   **三大渲染模式 (Render Modes)**：
+    *   **Solid (实体漫反射)**：柔和漫反射材质覆盖，最能体现法线起伏与立体受光。
+    *   **Wireframe (网格几何)**：剔除填充层，直观审视高精度几何三角形骨架及拓扑对称美。
+    *   **Texture (图像纹理)**：将相机图像以极高的贴图精度，严丝合缝地渲染到起伏的高度起伏网格上。
+*   **实时性能监控面板**：实时反馈渲染出的几何三角形总面数（Triangles Count）、实时缩放乘数（Zoom Factor）与多面视角，尽显极客本色。
+
+### 2. 深度高度控制与自动 Orbit 自转
+*   **硬核高度置换滑动条**：支持动态调整高度系数（0.05x - 1.1x），实时调动矩阵参数重绘顶点坐标。
+*   **物理场景自转 (Orbit Spin)**：配备独立开关及高精度速度滑动条（0.2x - 4.0x），随时开启 3D 模型平滑自动旋转展示。
+
+### 3. 多重感官反射材质预设 (Shader Material Indices)
+支持 3 类代表性的虚拟材质高仿真漫反射效果：
+*   **哑光粘土 (Matte Sand Clay)**：具有细腻温暖的有机粘土视觉，光泽高度柔和。
+*   **亮铜色 (Bright Bronze)**：呈现古朴高亮的青铜器表面，富含光影体积量感。
+*   **极致紫 (Minimal Purple)**：品牌专属的金属电镀绛紫，让置换出的网格展现赛博朋克一般的全息反光。
+
+### 4. 高保真立体图像分享 (Stereo Share)
+*   **立体左右眼拼接**：一键生成红蓝立体/双瞳平行格式的高清晰度图像。
+*   **HUD 监控信息覆层**：在拼接的分享图卡中自动增加高精度的技术参数标定（包括生成时间戳、网格尺寸、使用的虚拟材质索引、以及全景分界线）。
+
+### 5. 高效本地数据库历史系统
+*   **Room 数据库安全存盘**：采用 Room 机制保存用户的扫描，即使退出应用，扫描档案、深度图和生成图像也会被持久化存储。
+*   **多维度指标预览卡**：包含精美裁剪的历史缩略图、扫描具体日期毫秒数、采用的高度比率以及一键安全清除功能。
 
 ---
 
-## 📦 How to Build and Run
+## 📈 项目版本迭代与改动日志 (Iteration Changelog)
 
-### Prerequisites
-- JDK 17
-- Android SDK (API Level 34 or above)
-- Gradle 8.2+
+以下是项目从诞生到打造至极简极致的完整开发与优化履历：
 
-### Running the Build
-To compile the debug APK of the application from the project root:
+### 🛠️ v1.3.0 (当前版本 - 极简主义设计飞跃与系统健壮性修复)
+> *本阶段专注于全面的 UI/UX 极简重塑，并修复多项核心稳定性漏洞，确保应用编译稳定在 100% 畅通状态。*
+*   **UI/UX 级全面翻修**：
+    *   移除了老旧、杂乱的暗黑背景，采用全新的极简白底、亮灰与深靛紫相间的 **Clean Minimalism** 主题风格。
+    *   将 3D 渲染器、操作面板及卡片等大量交互单元的圆角全线由原先朴素的 `12dp` / `16dp` 提升至极富高级仪式感的 `32dp`，极大提升了点按触觉。
+    *   重构了 3D 渲染控件，其反射材质和渲染逻辑使用了全新的极简紫。
+    *   重新着色了 `StereoGenerator.kt` 的左右眼双瞳分屏输出，使其网格和 HUD 信息覆层配色完全契合极简深靛紫格调。
+*   **编译期逻辑与性能修复**：
+    *   **修复 MainActivity** 的作用域 implicit 错误：删除了嵌套作用域不当呼叫的 `AnimatedVisibility` 宏，替换为轻量级且健壮的 Compose `if (isGenerating)` 按需挂载逻辑。
+    *   **修复 HistoryPanel** 中由于重构导致的 `remember` 依赖缺失：在源文件头部补齐正确的 `import androidx.compose.runtime.remember` 引用，使列表状态缓存不再发生崩溃。
+    *   清理了多余、嵌套和重复定义的私有测量方法，提升编译速度。
+
+### 📦 v1.2.0 (多模式切换与历史仓储成型)
+*   新增 Room 本地缓存持久化，开发了 ModelEntity 以及完整的 DAO (Database Access Object)。
+*   添加了在 `HistoryPanel.kt` 中渲染历史缩略卡片和实时卡片删除的底层机制。
+*   实现了 Solid、Wireframe、Texture 的多通道 Canvas 重画逻辑。
+
+### 🚀 v1.1.0 (全息深度投影算法搭建)
+*   搭建了基于单色亮度的 3D 点云数学置换模型（通过 `Vertex3D`、`Triangle3D` 等三维几何实体进行高矩阵投影旋转算法）。
+*   整合了矩阵的三维变换系统，建立手势触摸 Drag、Zoom 与阻尼感官系统。
+
+###  v1.0.0 (空骨架搭建与架构初始化)
+*   创建了应用开发框架与包结构（`com.example` 命名域，`com.aistudio.photo3dhologram` 的唯一标识注册）。
+*   初始化 Kotlin Coroutine 挂载机制与基本的系统相机照片读取配置。
+
+---
+
+## 🛠️ 技术栈清单 (Technical Architecture)
+
+*   **语言支持**：100% Kotlin Fast Pipeline
+*   **UI 布局引擎**：Jetpack Compose & Kotlin Compiler Plugin 整合
+*   **底层架构模式**：MVVM (Model-View-ViewModel) + 状态单向流 (Unidirectional Data Flow)
+*   **依赖注入与轻量管理**：声明周期感知的自定义构造器注入 (Constructor Injection)
+*   **数据载体与持久化**：Android Jetpack Room 数据库 (KSP 预编译生成)
+*   **图片加载缓冲器**：Coil Compose Pipeline
+*   **系统构建工具**：Gradle Kotlin DSL (`.gradle.kts`)
+
+---
+
+##  构建和调试指引 (Build Instructions)
+
+### 如何在本地构建应用
+
+1.  确保本地拥有 **JDK 17 + Android SDK 34** 干净环境。
+2.  在终端或集成开发环境中配置好环境变量。
+3.  通过 Gradle 控制台对 debug 变体进行打包：
 
 ```bash
+# 1. 编译单元测试与逻辑检查
+gradle test
+
+# 2. 编译并输出高保真调试版本 APK (包含极简主题)
 gradle assembleDebug
 ```
 
-To run built unit tests:
-```bash
-gradle test
-```
+生成的安装包将存放在 `app/build/outputs/apk/debug/` 路径下，可直接通过流式模拟器安装预览。
 
 ---
 
-*Enjoy scanning and modeling with PolyCraft 3D!*
+*使用 PolyCraft 3D，开启您的 2D 瞬间转换 3D 艺术空间之旅！*
